@@ -1,0 +1,65 @@
+allprojects {
+    repositories {
+        mavenCentral() // Repositório global para todos os projetos
+    }
+}
+
+subprojects {
+    // Aplica plugins apenas ao subprojeto 'app'
+    apply plugin: 'java'
+    apply plugin: 'checkstyle'
+    apply plugin: 'application'
+
+    // Variáveis de versão
+    ext {
+        mapstructVersion = "1.6.3"
+        lombokVersion = "1.18.30"
+        lombokMapstructBinding = "0.2.0"
+    }
+
+
+    dependencies {
+        implementation("org.mapstruct:mapstruct:$mapstructVersion")
+        implementation("org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBinding")
+        compileOnly("org.projectlombok:lombok:$lombokVersion")
+        annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
+        annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBinding")
+        annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    }
+
+    tasks.withType(Checkstyle).configureEach {
+        reports {
+            xml.required = true
+            html.required = true
+        }
+    }
+
+    tasks.named('checkstyleMain') {
+        source = fileTree("src/main/java")
+        doFirst {
+            println "Arquivos analisados pelo Checkstyle: ${source.files}"
+            println "Usando configuração Checkstyle: ${configFile.absolutePath}"
+        }
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
+    application {
+        mainClass = "br.com.dio.Main"
+    }
+
+    tasks.named("test") {
+        useJUnitPlatform()
+    }
+
+    checkstyle {
+        toolVersion = '10.21.4'
+        configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+        ignoreFailures = false
+        showViolations = true
+        }
+    }
